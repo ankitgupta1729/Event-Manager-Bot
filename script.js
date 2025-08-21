@@ -55,6 +55,7 @@ class EventManagerChatbot {
         this.loadChatHistory();
         this.showInitialSuggestions();
         this.applySavedTheme();
+        this.setupScrollHandler();
     }
     
     initializeEventListeners() {
@@ -91,12 +92,75 @@ class EventManagerChatbot {
             this.clearChatHistory();
         });
         
+        // Add log export button if it doesn't exist
+        if (!document.getElementById('export-logs')) {
+            const exportLogs = document.createElement('button');
+            exportLogs.id = 'export-logs';
+            exportLogs.className = 'action-btn';
+            exportLogs.innerHTML = '<i class="fas fa-file-alt"></i>';
+            exportLogs.title = 'Export Logs';
+            exportLogs.addEventListener('click', () => {
+                this.exportLogs();
+            });
+            
+            document.querySelector('.chat-actions').appendChild(exportLogs);
+        }
+        
         // Auto-scroll to bottom when new messages are added
         const chatMessages = document.getElementById('chat-messages');
         const observer = new MutationObserver(() => {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            this.handleNewMessage();
         });
         observer.observe(chatMessages, { childList: true });
+    }
+    
+    exportLogs() {
+        const success = logger.exportAllLogs();
+        if (success) {
+            this.addMessageToChat("I've exported all logs as a log file. It should download shortly. 📝", 'bot');
+        } else {
+            this.addMessageToChat("There are no logs to export yet.", 'bot');
+        }
+    }
+    
+    setupScrollHandler() {
+        const chatMessages = document.getElementById('chat-messages');
+        const scrollButton = document.createElement('div');
+        scrollButton.className = 'scroll-to-bottom';
+        scrollButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        scrollButton.addEventListener('click', () => {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+        
+        document.querySelector('.chat-box').appendChild(scrollButton);
+        this.scrollButton = scrollButton;
+        
+        chatMessages.addEventListener('scroll', () => {
+            this.toggleScrollButton();
+        });
+    }
+    
+    toggleScrollButton() {
+        const chatMessages = document.getElementById('chat-messages');
+        const scrollThreshold = 100; // pixels from bottom
+        
+        if (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight > scrollThreshold) {
+            this.scrollButton.classList.add('visible');
+        } else {
+            this.scrollButton.classList.remove('visible');
+        }
+    }
+    
+    handleNewMessage() {
+        const chatMessages = document.getElementById('chat-messages');
+        // Scroll to bottom if not too far up
+        if (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 200) {
+            setTimeout(() => {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 100);
+        }
+        
+        this.toggleScrollButton();
     }
     
     toggleTheme() {
@@ -138,6 +202,14 @@ class EventManagerChatbot {
         
         excelHandler.downloadExcel(events);
         this.addMessageToChat("I've prepared an Excel file with all your events. It should download shortly. 📊", 'bot');
+        
+        // Also export event logs
+        const logExported = logger.exportEventLogs();
+        if (logExported) {
+            setTimeout(() => {
+                this.addMessageToChat("I've also exported a detailed log file of all your event activities. 📝", 'bot');
+            }, 1500);
+        }
     }
     
     clearChatHistory() {
@@ -305,6 +377,9 @@ class EventManagerChatbot {
                     const saveSuccess = excelHandler.saveEventToExcel(this.eventData);
                     
                     if (saveSuccess) {
+                        // Create event log
+                        logger.createEventLog(this.eventData, 'created');
+                        
                         // Generate response using LLM
                         const llmResponse = await llmService.generateEventResponse(this.eventData);
                         
@@ -337,6 +412,7 @@ class EventManagerChatbot {
                         this.hideTypingIndicator();
                         this.addMessageToChat("I've collected all your event details. Thank you! Your event has been created successfully.", 'bot');
                         excelHandler.saveEventToExcel(this.eventData);
+                        logger.createEventLog(this.eventData, 'created');
                         this.showSuggestionChips(["Create another event", "View my events"]);
                         logger.log(`Event created with fallback: ${JSON.stringify(this.eventData)}`);
                         
