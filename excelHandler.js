@@ -1,35 +1,23 @@
 class ExcelHandler {
     constructor() {
         this.filename = 'event_manager_events.xlsx';
+        this.initialize();
+    }
+    
+    initialize() {
+        // Initialize with empty events array if not exists
+        if (!localStorage.getItem('event_manager_events_data')) {
+            localStorage.setItem('event_manager_events_data', JSON.stringify([]));
+        }
     }
     
     saveEventToExcel(eventData) {
         try {
-            // Try to read existing workbook
-            let workbook;
-            try {
-                const existingFile = localStorage.getItem(this.filename);
-                if (existingFile) {
-                    workbook = XLSX.read(existingFile, { type: 'string' });
-                } else {
-                    workbook = XLSX.utils.book_new();
-                }
-            } catch (e) {
-                workbook = XLSX.utils.book_new();
-            }
+            // Get existing events
+            const events = this.getEvents();
             
-            // Try to get the worksheet or create it
-            let worksheet;
-            if (workbook.SheetNames.includes('Events')) {
-                worksheet = workbook.Sheets['Events'];
-            } else {
-                worksheet = XLSX.utils.json_to_sheet([]);
-                XLSX.utils.book_append_sheet(workbook, worksheet, 'Events');
-            }
-            
-            // Convert current data to worksheet
-            const currentData = XLSX.utils.sheet_to_json(worksheet);
-            currentData.push({
+            // Add new event with creation timestamp
+            events.push({
                 'Event Name': eventData.name,
                 'Event ID': eventData.id,
                 'Timezone': eventData.timezone,
@@ -39,28 +27,31 @@ class ExcelHandler {
                 'Created At': new Date().toISOString()
             });
             
-            // Create new worksheet with updated data
-            const newWorksheet = XLSX.utils.json_to_sheet(currentData);
+            // Save back to localStorage
+            localStorage.setItem('event_manager_events_data', JSON.stringify(events));
             
-            // Replace the worksheet in the workbook
-            workbook.Sheets['Events'] = newWorksheet;
+            // Also create and offer download of actual Excel file
+            this.downloadExcel(events);
             
-            // Save to localStorage
-            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'string' });
-            localStorage.setItem(this.filename, excelBuffer);
-            
-            // Also offer download
-            this.downloadExcel(workbook);
-            
-            logger.log(`Event saved to Excel: ${eventData.name}`);
+            logger.log(`Event saved: ${eventData.name}`);
+            return true;
         } catch (error) {
-            console.error('Error saving to Excel:', error);
-            logger.log(`Error saving to Excel: ${error.message}`);
+            console.error('Error saving event:', error);
+            logger.log(`Error saving event: ${error.message}`);
+            return false;
         }
     }
     
-    downloadExcel(workbook) {
+    downloadExcel(events) {
         try {
+            // Create workbook and worksheet
+            const workbook = XLSX.utils.book_new();
+            const worksheet = XLSX.utils.json_to_sheet(events);
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Events');
+            
+            // Generate Excel file and offer download
             const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
             const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             
@@ -82,17 +73,30 @@ class ExcelHandler {
     
     getEvents() {
         try {
-            const existingFile = localStorage.getItem(this.filename);
-            if (!existingFile) return [];
-            
-            const workbook = XLSX.read(existingFile, { type: 'string' });
-            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-            return XLSX.utils.sheet_to_json(worksheet);
+            const eventsData = localStorage.getItem('event_manager_events_data');
+            return eventsData ? JSON.parse(eventsData) : [];
         } catch (error) {
-            console.error('Error reading events from Excel:', error);
-            logger.log(`Error reading events from Excel: ${error.message}`);
+            console.error('Error reading events:', error);
+            logger.log(`Error reading events: ${error.message}`);
             return [];
         }
+    }
+    
+    getRecentEvents(limit = 10) {
+        try {
+            const events = this.getEvents();
+            // Sort by creation date, newest first
+            return events.sort((a, b) => {
+                return new Date(b['Created At']) - new Date(a['Created At']);
+            }).slice(0, limit);
+        } catch (error) {
+            console.error('Error getting recent events:', error);
+            return [];
+        }
+    }
+    
+    clearEvents() {
+        localStorage.setItem('event_manager_events_data', JSON.stringify([]));
     }
 }
 

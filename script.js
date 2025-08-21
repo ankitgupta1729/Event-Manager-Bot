@@ -150,7 +150,8 @@ class EventManagerChatbot {
         if (processedMessage.includes('view') && processedMessage.includes('event') || 
             processedMessage.includes('show') && processedMessage.includes('event') ||
             processedMessage.includes('my event') ||
-            processedMessage.includes('list event')) {
+            processedMessage.includes('list event') ||
+            processedMessage.includes('recent event')) {
             this.showTypingIndicator();
             setTimeout(() => {
                 this.hideTypingIndicator();
@@ -234,28 +235,36 @@ class EventManagerChatbot {
                 
                 try {
                     // Save to Excel first
-                    excelHandler.saveEventToExcel(this.eventData);
+                    const saveSuccess = excelHandler.saveEventToExcel(this.eventData);
                     
-                    // Generate response using LLM
-                    const llmResponse = await llmService.generateEventResponse(this.eventData);
-                    
-                    // Add bot response to chat
-                    setTimeout(() => {
-                        this.hideTypingIndicator();
-                        this.addMessageToChat(llmResponse, 'bot');
-                        this.showSuggestionChips(["Create another event", "View my events", "No, thanks"]);
-                        logger.log(`Event created: ${JSON.stringify(this.eventData)}`);
+                    if (saveSuccess) {
+                        // Generate response using LLM
+                        const llmResponse = await llmService.generateEventResponse(this.eventData);
                         
-                        // Reset event data for next event
-                        this.eventData = {
-                            name: null,
-                            id: null,
-                            timezone: null,
-                            date: null,
-                            location: null,
-                            description: null
-                        };
-                    }, 2000);
+                        // Add bot response to chat
+                        setTimeout(() => {
+                            this.hideTypingIndicator();
+                            this.addMessageToChat(llmResponse, 'bot');
+                            this.showSuggestionChips(["Create another event", "View my events", "No, thanks"]);
+                            logger.log(`Event created: ${JSON.stringify(this.eventData)}`);
+                        }, 2000);
+                    } else {
+                        setTimeout(() => {
+                            this.hideTypingIndicator();
+                            this.addMessageToChat("I encountered an error saving your event. Please try again.", 'bot');
+                            logger.log(`Error saving event: ${JSON.stringify(this.eventData)}`);
+                        }, 2000);
+                    }
+                    
+                    // Reset event data for next event
+                    this.eventData = {
+                        name: null,
+                        id: null,
+                        timezone: null,
+                        date: null,
+                        location: null,
+                        description: null
+                    };
                 } catch (error) {
                     setTimeout(() => {
                         this.hideTypingIndicator();
@@ -298,7 +307,7 @@ class EventManagerChatbot {
     }
     
     showUserEvents() {
-        const events = excelHandler.getEvents();
+        const events = excelHandler.getRecentEvents();
         
         if (events.length === 0) {
             this.addMessageToChat("You haven't created any events yet. Would you like to create one now?", 'bot');
@@ -306,15 +315,17 @@ class EventManagerChatbot {
             return;
         }
         
-        let response = "Here are your previously created events:\n\n";
+        let response = "Here are your recently created events:\n\n";
         
         events.forEach((event, index) => {
-            response += `📅 ${index + 1}. ${event['Event Name']} (ID: ${event['Event ID']})\n`;
+            response += `📅 <strong>${event['Event Name']}</strong> (ID: ${event['Event ID']})\n`;
             response += `   ⏰ Date: ${event['Date']}\n`;
             response += `   🌐 Timezone: ${event['Timezone']}\n`;
             response += `   📍 Location: ${event['Location']}\n`;
             response += `   📝 Description: ${event['Description']}\n\n`;
         });
+        
+        response += `Total events: ${events.length}`;
         
         this.addMessageToChat(response, 'bot');
         this.showSuggestionChips(["Create another event", "How does it work?"]);
