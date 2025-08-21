@@ -5,25 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EventManager Chatbot</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="background-animation">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+        <div class="shape shape-4"></div>
+    </div>
+
     <div class="container">
         <header>
-            <h1><i class="fas fa-calendar-alt"></i> EventManager</h1>
-            <p>Your intelligent event planning assistant</p>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h1>EventManager</h1>
+                </div>
+                <p>Your intelligent event planning assistant</p>
+            </div>
         </header>
 
         <div class="chat-container">
             <div class="chat-history-panel">
-                <h3>Recent Conversations</h3>
+                <div class="panel-header">
+                    <h3><i class="fas fa-history"></i> Recent Conversations</h3>
+                    <button class="clear-btn" id="clear-history"><i class="fas fa-trash"></i></button>
+                </div>
                 <div id="history-list">
                     <p class="no-history">No recent conversations</p>
                 </div>
             </div>
 
             <div class="chat-box">
+                <div class="chat-header">
+                    <div class="chat-bot-info">
+                        <div class="bot-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="bot-status">
+                            <h3>EventBot</h3>
+                            <span class="status online">Online</span>
+                        </div>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="action-btn" id="export-events"><i class="fas fa-download"></i></button>
+                        <button class="action-btn" id="theme-toggle"><i class="fas fa-moon"></i></button>
+                    </div>
+                </div>
+
                 <div class="chat-messages" id="chat-messages">
                     <div class="message bot-message">
                         <div class="avatar">
@@ -42,8 +73,10 @@
                         <span></span>
                         <span></span>
                     </div>
-                    <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
-                    <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+                    <div class="input-container">
+                        <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+                        <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+                    </div>
                 </div>
             </div>
         </div>

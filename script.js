@@ -11,6 +11,7 @@ class EventManagerChatbot {
         
         this.currentQuestionIndex = 0;
         this.isAskingQuestions = false;
+        this.isDarkTheme = false;
         this.questions = [
             {
                 question: "What is the name of your event?",
@@ -53,11 +54,15 @@ class EventManagerChatbot {
         this.initializeEventListeners();
         this.loadChatHistory();
         this.showInitialSuggestions();
+        this.applySavedTheme();
     }
     
     initializeEventListeners() {
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
+        const themeToggle = document.getElementById('theme-toggle');
+        const exportEvents = document.getElementById('export-events');
+        const clearHistory = document.getElementById('clear-history');
         
         // Send message on button click
         sendButton.addEventListener('click', () => {
@@ -71,12 +76,74 @@ class EventManagerChatbot {
             }
         });
         
+        // Theme toggle
+        themeToggle.addEventListener('click', () => {
+            this.toggleTheme();
+        });
+        
+        // Export events
+        exportEvents.addEventListener('click', () => {
+            this.exportAllEvents();
+        });
+        
+        // Clear history
+        clearHistory.addEventListener('click', () => {
+            this.clearChatHistory();
+        });
+        
         // Auto-scroll to bottom when new messages are added
         const chatMessages = document.getElementById('chat-messages');
         const observer = new MutationObserver(() => {
             chatMessages.scrollTop = chatMessages.scrollHeight;
         });
         observer.observe(chatMessages, { childList: true });
+    }
+    
+    toggleTheme() {
+        this.isDarkTheme = !this.isDarkTheme;
+        const themeIcon = document.getElementById('theme-toggle').querySelector('i');
+        
+        if (this.isDarkTheme) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+            localStorage.setItem('eventManagerTheme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            themeIcon.classList.remove('fa-sun');
+            themeIcon.classList.add('fa-moon');
+            localStorage.setItem('eventManagerTheme', 'light');
+        }
+    }
+    
+    applySavedTheme() {
+        const savedTheme = localStorage.getItem('eventManagerTheme');
+        const themeIcon = document.getElementById('theme-toggle').querySelector('i');
+        
+        if (savedTheme === 'dark') {
+            this.isDarkTheme = true;
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        }
+    }
+    
+    exportAllEvents() {
+        const events = excelHandler.getEvents();
+        
+        if (events.length === 0) {
+            this.addMessageToChat("You don't have any events to export yet. Create some events first!", 'bot');
+            return;
+        }
+        
+        excelHandler.downloadExcel(events);
+        this.addMessageToChat("I've prepared an Excel file with all your events. It should download shortly. 📊", 'bot');
+    }
+    
+    clearChatHistory() {
+        chatHistory.clearHistory();
+        this.updateHistoryPanel();
+        this.addMessageToChat("Chat history has been cleared. How can I help you today?", 'bot');
     }
     
     showInitialSuggestions() {

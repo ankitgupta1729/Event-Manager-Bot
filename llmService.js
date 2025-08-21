@@ -94,7 +94,7 @@ class LLMService {
                 "Content-Type": "application/json"
             };
             
-            const prompt = `Generate a detailed event triggering procedure based on these details:
+            const prompt = `Generate a comprehensive event summary and detailed procedure based on these event details:
             Event Name: ${eventData.name}
             Event ID: ${eventData.id}
             Timezone: ${eventData.timezone}
@@ -102,7 +102,12 @@ class LLMService {
             Location: ${eventData.location}
             Description: ${eventData.description}
             
-            Provide a step-by-step guide on how to trigger this event, including preparation, execution, and expected outcomes.`;
+            Provide a detailed summary including:
+            1. Event purpose and objectives
+            2. Step-by-step procedure for executing the event
+            3. Expected outcomes and benefits
+            4. Any special considerations based on the event details
+            5. A comprehensive conclusion`;
             
             const response = await fetch(API_URL, {
                 method: "POST",
@@ -123,47 +128,135 @@ class LLMService {
     }
     
     getEventFallbackResponse(eventData) {
-        return `Thank you for creating your event! 🎉
+        return `🎉 **EVENT CREATED SUCCESSFULLY!**
 
-Here are your event details:
-📅 Event: ${eventData.name}
-🆔 ID: ${eventData.id}
-🌐 Timezone: ${eventData.timezone}
-⏰ Date & Time: ${eventData.date}
-📍 Location: ${eventData.location}
-📝 Description: ${eventData.description}
+I've created your event based on all the details you provided. Here's a comprehensive summary:
 
-To trigger this event, follow these detailed steps:
+## 📋 EVENT OVERVIEW
+**Event Name:** ${eventData.name}
+**Event ID:** ${eventData.id}
+**Date & Time:** ${eventData.date} (Timezone: ${eventData.timezone})
+**Location:** ${eventData.location}
 
-1. PRE-EVENT PREPARATION:
-   - Verify all event details are correct as listed above
-   - Set up the event infrastructure based on the location (${eventData.location})
-   - Prepare any necessary equipment, materials, or technology
-   - Create a timeline based on the event date (${eventData.date}) in timezone ${eventData.timezone}
+## 🎯 EVENT PURPOSE & OBJECTIVES
+Based on your description "${eventData.description}", this event appears to be focused on ${this.getEventPurpose(eventData.description)}. The primary objectives likely include:
+- ${this.getObjective1(eventData.description)}
+- ${this.getObjective2(eventData.description)}
+- ${this.getObjective3(eventData.description)}
 
-2. PARTICIPANT COMMUNICATION:
-   - Send invitations with the event ID (${eventData.id}) for tracking
-   - Include all relevant details: date, time, location, and description
-   - Set up reminders for participants based on the timezone (${eventData.timezone})
+## 📝 DETAILED EXECUTION PLAN
 
-3. EVENT EXECUTION:
-   - On the event day, arrive early to set up ${eventData.location}
-   - Follow the event timeline precisely
-   - Engage with participants as described: ${eventData.description}
-   - Use the event ID (${eventData.id}) for check-in and tracking
+### Pre-Event Preparation (1-2 Weeks Before)
+1. **Finalize Logistics:** Confirm ${eventData.location} booking and setup requirements
+2. **Participant Communication:** Send detailed invitations with event ID ${eventData.id}
+3. **Timezone Coordination:** Ensure all participants in ${eventData.timezone} are aware of the timing
+4. **Material Preparation:** Develop resources specific to "${eventData.name}"
 
-4. POST-EVENT ACTIVITIES:
-   - Gather feedback from participants
-   - Send follow-up materials
-   - Analyze event success metrics
+### Event Day Execution
+1. **Setup (2-3 Hours Before):** Arrive at ${eventData.location} to prepare the venue
+2. **Registration:** Use event ID ${eventData.id} for participant check-in
+3. **Event Flow:** Follow the agenda based on ${eventData.date} schedule
+4. **Engagement:** Implement activities as described: ${eventData.description}
 
-Expected outcome:
-- Participants will experience "${eventData.name}" as described: ${eventData.description}
-- The event will run smoothly according to the planned schedule in ${eventData.timezone}
-- You'll receive valuable feedback for future improvements
-- The event will be successfully tracked using ID: ${eventData.id}
+### Post-Event Activities (Within 1 Week)
+1. **Feedback Collection:** Gather participant insights
+2. **Follow-up Communication:** Share resources and next steps
+3. **Success Measurement:** Evaluate against event objectives
+4. **Documentation:** Archive materials for future reference
 
-Your event has been successfully saved and is ready to be triggered! Let me know if you need any changes or assistance with anything else!`;
+## 🎪 EXPECTED OUTCOMES
+Based on your event description, participants should experience:
+- ${this.getOutcome1(eventData.description)}
+- ${this.getOutcome2(eventData.description)}
+- ${this.getOutcome3(eventData.description)}
+
+## ⚠️ SPECIAL CONSIDERATIONS
+- **Timezone Awareness:** All timing references should be clearly marked as ${eventData.timezone}
+- **Venue Specifics:** ${this.getVenueConsiderations(eventData.location)}
+- **Content Focus:** Ensure all activities align with: ${eventData.description}
+
+## ✅ CONCLUSION
+Your event "${eventData.name}" has been successfully planned and is ready for execution. The event ID ${eventData.id} will help you track all related activities and communications.
+
+Remember to:
+- Double-check all timing references for ${eventData.timezone}
+- Confirm final details with ${eventData.location}
+- Keep your event description in mind: "${eventData.description}"
+
+Let me know if you need any adjustments or additional planning assistance!`;
+    }
+    
+    // Helper methods to generate dynamic content based on event description
+    getEventPurpose(description) {
+        if (description.toLowerCase().includes('conference') || description.toLowerCase().includes('meeting')) {
+            return "knowledge sharing and networking";
+        } else if (description.toLowerCase().includes('training') || description.toLowerCase().includes('workshop')) {
+            return "skill development and education";
+        } else if (description.toLowerCase().includes('party') || description.toLowerCase().includes('celebration')) {
+            return "celebration and social connection";
+        } else if (description.toLowerCase().includes('product') || description.toLowerCase().includes('launch')) {
+            return "product introduction and market engagement";
+        } else {
+            return "achieving specific goals through organized activities";
+        }
+    }
+    
+    getObjective1(description) {
+        if (description.toLowerCase().includes('network') || description.toLowerCase().includes('connect')) {
+            return "Facilitating meaningful connections between participants";
+        } else if (description.toLowerCase().includes('learn') || description.toLowerCase().includes('education')) {
+            return "Providing valuable learning experiences and knowledge transfer";
+        } else if (description.toLowerCase().includes('celebrate') || description.toLowerCase().includes('social')) {
+            return "Creating enjoyable experiences and strengthening relationships";
+        } else {
+            return "Achieving the primary goals outlined in your event description";
+        }
+    }
+    
+    getObjective2(description) {
+        if (description.toLowerCase().includes('discuss') || description.toLowerCase().includes('idea')) {
+            return "Generating new ideas and solutions through collaborative discussion";
+        } else if (description.toLowerCase().includes('demonstrate') || description.toLowerCase().includes('showcase')) {
+            return "Effectively presenting products, services, or concepts";
+        } else {
+            return "Ensuring smooth execution and positive participant experience";
+        }
+    }
+    
+    getObjective3(description) {
+        return "Creating lasting value and measurable results from the event";
+    }
+    
+    getOutcome1(description) {
+        if (description.toLowerCase().includes('technical') || description.toLowerCase().includes('technology')) {
+            return "Enhanced understanding of technical concepts and applications";
+        } else if (description.toLowerCase().includes('business') || description.toLowerCase().includes('professional')) {
+            return "Improved professional capabilities and business insights";
+        } else {
+            return "Meaningful engagement with the event content and other participants";
+        }
+    }
+    
+    getOutcome2(description) {
+        if (description.toLowerCase().includes('community') || description.toLowerCase().includes('team')) {
+            return "Stronger community bonds and team cohesion";
+        } else {
+            return "Practical knowledge or skills they can apply after the event";
+        }
+    }
+    
+    getOutcome3(description) {
+        return "Positive overall experience that meets or exceeds expectations";
+    }
+    
+    getVenueConsiderations(location) {
+        if (location.toLowerCase().includes('virtual') || location.toLowerCase().includes('online')) {
+            return "Ensure all participants have the necessary technology and access information";
+        } else if (location.toLowerCase().includes('office') || location.toLowerCase().includes('building')) {
+            return "Coordinate with facility management for access and setup requirements";
+        } else {
+            return "Confirm all logistics with the venue management including setup times and equipment";
+        }
     }
     
     getFallbackResponse(message) {
