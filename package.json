@@ -1,0 +1,21 @@
+{
+  "name": "eventmanager-chatbot",
+  "version": "1.0.0",
+  "description": "A beautiful, interactive chatbot for event management",
+  "main": "script.js",
+  "scripts": {
+    "start": "live-server --port=3000 --open=/index.html",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "chatbot",
+    "event-management",
+    "javascript",
+    "ai"
+  ],
+  "author": "EventManager Team",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}
